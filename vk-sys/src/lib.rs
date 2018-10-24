@@ -7,6 +7,8 @@
 // notice may not be copied, modified, or distributed except
 // according to those terms.
 
+#![doc(html_logo_url = "https://raw.githubusercontent.com/vulkano-rs/vulkano/master/logo.png")]
+
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
@@ -956,6 +958,8 @@ pub const PRESENT_MODE_IMMEDIATE_KHR: u32 = 0;
 pub const PRESENT_MODE_MAILBOX_KHR: u32 = 1;
 pub const PRESENT_MODE_FIFO_KHR: u32 = 2;
 pub const PRESENT_MODE_FIFO_RELAXED_KHR: u32 = 3;
+pub const PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR: u32 = 1000111000;
+pub const PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR: u32 = 1000111001;
 
 pub type SurfaceTransformFlagBitsKHR = u32;
 pub const SURFACE_TRANSFORM_IDENTITY_BIT_KHR: u32 = 0x00000001;
