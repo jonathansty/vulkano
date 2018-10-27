@@ -69,8 +69,6 @@ use vk;
 pub fn acquire_next_image<W>(swapchain: Arc<Swapchain<W>>, timeout: Option<Duration>)
                           -> Result<(usize, SwapchainAcquireFuture<W>), AcquireError> {
     let semaphore = Semaphore::from_pool(swapchain.device.clone())?;
-    let fence = Fence::from_pool(swapchain.device.clone())?;
-
     // TODO: propagate `suboptimal` to the user
     let AcquiredImage { id, suboptimal } = {
         // Check that this is not an old swapchain. From specs:
@@ -81,14 +79,13 @@ pub fn acquire_next_image<W>(swapchain: Arc<Swapchain<W>>, timeout: Option<Durat
             return Err(AcquireError::OutOfDate);
         }
 
-        unsafe { acquire_next_image_raw(&swapchain, timeout, Some(&semaphore), Some(&fence)) }?
+        unsafe { acquire_next_image_raw(&swapchain, timeout, Some(&semaphore), None) }?
     };
 
     Ok((id,
         SwapchainAcquireFuture {
             swapchain: swapchain,
             semaphore: Some(semaphore),
-            fence: Some(fence),
             image_id: id,
             finished: AtomicBool::new(false),
         }))
@@ -754,9 +751,6 @@ pub struct SwapchainAcquireFuture<W> {
     // Semaphore that is signalled when the acquire is complete. Empty if the acquire has already
     // happened.
     semaphore: Option<Semaphore>,
-    // Fence that is signalled when the acquire is complete. Empty if the acquire has already
-    // happened.
-    fence: Option<Fence>,
     finished: AtomicBool,
 }
 
@@ -854,25 +848,6 @@ unsafe impl<W> DeviceOwned for SwapchainAcquireFuture<W> {
 
 impl<W> Drop for SwapchainAcquireFuture<W> {
     fn drop(&mut self) {
-        if !*self.finished.get_mut() {
-            if let Some(ref fence) = self.fence {
-                fence.wait(None).unwrap(); // TODO: handle error?
-                self.semaphore = None;
-            }
-
-        } else {
-            // We make sure that the fence is signalled. This also silences an error from the
-            // validation layers about using a fence whose state hasn't been checked (even though
-            // we know for sure that it must've been signalled).
-            debug_assert!({
-                              let dur = Some(Duration::new(0, 0));
-                              self.fence
-                                  .as_ref()
-                                  .map(|f| f.wait(dur).is_ok())
-                                  .unwrap_or(true)
-                          });
-        }
-
         // TODO: if this future is destroyed without being presented, then eventually acquiring
         // a new image will block forever ; difficulty: hard
     }
