@@ -21,7 +21,6 @@
     + Debug messages now have a `MessageSeverity` flag and a `MessageType` flag.
     + Debug messages now give info about relevant objects, queue labels and command buffer labels
     + The `CommandBufferBuilders` now implement functions `begin_debug_label`, `insert_debug_label` and `end_debug_label`.
-
 - Implemented DescriptorSetCollection for `Vec<T>` which allows easier use of construction them for usage when drawing.
 
 # Version 0.10.0 (2018-08-10)
